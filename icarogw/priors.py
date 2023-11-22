@@ -2,6 +2,7 @@ from .cupy_pal import cp2np, np2cp, get_module_array, get_module_array_scipy, is
 from .conversions import L2M, M2L
 import copy
 
+# LVK Reviewed
 def betadistro_muvar2ab(mu,var):
     '''
     Calculates the a and b parameters of the beta distribution given mean and variance
@@ -22,6 +23,7 @@ def betadistro_muvar2ab(mu,var):
     a=(((1.-mu)/var)- 1./mu )*xp.power(mu,2.)
     return a,a* (1./mu -1.)
 
+# LVK Reviewed
 def betadistro_ab2muvar(a,b):
     '''
     Calculates the a and b parameters of the beta distribution given mean and variance
@@ -40,6 +42,7 @@ def betadistro_ab2muvar(a,b):
     
     return a/(a+b), a*b/(xp.power(a+b,2.) *(a+b+1.))
 
+# LVK Reviewed
 def _S_factor(mass, mmin,delta_m):
     '''
     This function returns the value of the window function defined as Eqs B6 and B7 of https://arxiv.org/pdf/2010.14533.pdf
@@ -81,6 +84,7 @@ def _S_factor(mass, mmin,delta_m):
     to_ret[select_one]=1.
     return to_ret
 
+# LVK Reviewed
 class basic_1dimpdf(object):
     
     def __init__(self,minval,maxval):
@@ -218,7 +222,6 @@ class basic_1dimpdf(object):
         randomcdf=np.random.rand(N)
         return np.interp(randomcdf,cdfeval,sarray)
 
-# Not reviewed    
 class paired_2dimpdf(object):
     
     def __init__(self,pdf,pairing_function):
@@ -277,6 +280,7 @@ class paired_2dimpdf(object):
         xp = get_module_array(x1)
         return xp.exp(self.log_pdf(x1,x2))
 
+# LVK Reviewed
 class conditional_2dimpdf(object):
     
     def __init__(self,pdf1,pdf2):
@@ -370,6 +374,7 @@ class conditional_2dimpdf(object):
         x2samp=np.interp(randomcdf2*self.pdf2.cdf(x1samp),cdfeval2,sarray2)
         return x1samp,x2samp
 
+# LVK Reviewed
 class SmoothedProb(basic_1dimpdf):
     
     def __init__(self,originprob,bottomsmooth):
@@ -456,6 +461,7 @@ class SmoothedProb(basic_1dimpdf):
         
         return xp.log(toret).reshape(origin)
 
+# LVK Reviewed
 def PL_normfact(minpl,maxpl,alpha):
     '''
     Returns the Powerlaw normalization factor
@@ -470,6 +476,7 @@ def PL_normfact(minpl,maxpl,alpha):
         norm_fact=(np.power(maxpl,alpha+1.)-np.power(minpl,alpha+1))/(alpha+1)
     return norm_fact
 
+# LVK Reviewed
 class PowerLaw(basic_1dimpdf):
     
     def __init__(self,minpl,maxpl,alpha):
@@ -521,7 +528,8 @@ class PowerLaw(basic_1dimpdf):
         else:
             toret =xp.log(((xp.power(x,self.alpha+1)-xp.power(self.minpl,self.alpha+1))/(self.alpha+1))/self.norm_fact)
         return toret
-    
+
+# LVK Reviewed
 def get_beta_norm(alpha, beta):
     ''' 
     This function returns the normalization factor of the Beta PDF
@@ -537,6 +545,7 @@ def get_beta_norm(alpha, beta):
     # Get the Beta norm as in Wiki Beta function https://en.wikipedia.org/wiki/Beta_distribution
     return sn.special.gamma(alpha)*sn.special.gamma(beta)/sn.special.gamma(alpha+beta)
 
+# LVK Reviewed
 class BetaDistribution(basic_1dimpdf):
     
     def __init__(self,alpha,beta):
@@ -589,7 +598,7 @@ class BetaDistribution(basic_1dimpdf):
         toret = xp.log(sx.special.betainc(self.alpha,self.beta,x))
         return toret
         
-        
+# LVK Reviewed       
 class TruncatedBetaDistribution(basic_1dimpdf):
     
     def __init__(self,alpha,beta,maximum):
@@ -642,7 +651,7 @@ class TruncatedBetaDistribution(basic_1dimpdf):
         toret = xp.log(sx.special.betainc(self.alpha,self.beta,x)/sx.special.betainc(self.alpha,self.beta,self.maximum))
         return toret
         
-
+# LVK Reviewed
 def get_gaussian_norm(ming,maxg,meang,sigmag):
     '''
     Returns the normalization of the gaussian distribution
@@ -655,6 +664,7 @@ def get_gaussian_norm(ming,maxg,meang,sigmag):
     min_point = (ming-meang)/(sigmag*np.sqrt(2.))
     return 0.5*sn.special.erf(max_point)-0.5*sn.special.erf(min_point)
 
+# LVK Reviewed
 class TruncatedGaussian(basic_1dimpdf):
     
     def __init__(self,meang,sigmag,ming,maxg):
@@ -709,6 +719,7 @@ class TruncatedGaussian(basic_1dimpdf):
 
 # Overwrite most of the methods of the parent class
 # Idea from https://stats.stackexchange.com/questions/30588/deriving-the-conditional-distributions-of-a-multivariate-normal-distribution
+# LVK Reviewed
 class Bivariate2DGaussian(conditional_2dimpdf):
     
     def __init__(self,x1min,x1max,x1mean,x2min,x2max,x2mean,x1variance,x12covariance,x2variance):
@@ -785,7 +796,8 @@ class Bivariate2DGaussian(conditional_2dimpdf):
         pdfeval=self.pdf(x1samp,x2samp)
         idx=np.random.choice(len(x1samp),size=N,replace=True,p=pdfeval/pdfeval.sum())
         return x1samp[idx],x2samp[idx]
-
+        
+# LVK Reviewed
 class PowerLawGaussian(basic_1dimpdf):
     
     def __init__(self,minpl,maxpl,alpha,lambdag,meang,sigmag,ming,maxg):
@@ -836,6 +848,7 @@ class PowerLawGaussian(basic_1dimpdf):
         toret=xp.log((1-self.lambdag)*self.PL.cdf(x)+self.lambdag*self.TG.cdf(x))
         return toret
 
+# LVK Reviewed
 class BrokenPowerLaw(basic_1dimpdf):
     
     def __init__(self,minpl,maxpl,alpha_1,alpha_2,b):
@@ -891,6 +904,7 @@ class BrokenPowerLaw(basic_1dimpdf):
         /self.PL2.pdf(xp.array([self.break_point]))))/self.norm_fact)
         return toret
 
+# LVK Reviewed
 class PowerLawTwoGaussians(basic_1dimpdf):
     
     def __init__(self,minpl,maxpl,alpha,lambdag,lambdaglow,meanglow,sigmaglow,minglow,maxglow,
@@ -950,6 +964,7 @@ class PowerLawTwoGaussians(basic_1dimpdf):
         g_part =self.TGlow.cdf(x)*self.lambdag*self.lambdaglow+self.TGhigh.cdf(x)*self.lambdag*(1-self.lambdaglow)
         return xp.log(pl_part+g_part)
 
+# LVK Reviewed
 class absL_PL_inM(basic_1dimpdf):
     
     def __init__(self,Mmin,Mmax,alpha):
@@ -998,4 +1013,218 @@ class absL_PL_inM(basic_1dimpdf):
         xp = get_module_array(M)
         toret=xp.log(1.-self.L_PL_CDF.cdf(M2L(M)))
         return toret
-      
+
+class piecewise_constant_2d_distribution_normalized():
+
+    """
+    Class for a piecewise constant source frame mass distribution. 
+    The 2d mass distribution is divided in a 2d checkerboard pattern, with the 
+    constraint m1 > m2. The checkerboard boxes along the diagonal are cut in half. 
+
+    Parameters
+    ----------
+
+    dist_min: float
+        The minimum of the distribution
+    dist_max: float
+        The maximum of the distribution
+    weights: 1d array
+        The array determining the individual weights of each bin. 
+    
+    """
+
+    def __init__(self, dist_min, dist_max, weights):
+
+        self.dist_min, self.dist_max = dist_min, dist_max
+        self.n_bins = len(weights)
+
+        # use formula n * (n+1) / 2 to invert for n
+        self.n_bins_1d = int(-1/2 + np.sqrt(1/4 + 2 * self.n_bins))
+
+        self.weights = weights
+        xp = get_module_array(weights)
+    
+        self.grid_x1 = xp.linspace(self.dist_min, self.dist_max, self.n_bins_1d + 1)
+        self.grid_x2 = xp.linspace(self.dist_min, self.dist_max, self.n_bins_1d + 1)
+        
+        # compute normalization
+        self.delta_bin_x1 = self.grid_x1[1] - self.grid_x1[0]
+        self.delta_bin_x2 = self.grid_x2[1] - self.grid_x2[0]
+
+        self.norm = self.compute_norm()  
+
+        self.weights_normalized = self.norm * self.weights
+
+    def compute_norm(self):
+
+        """
+        Computes the normalization for the PDF. 
+
+        """
+
+        xp = get_module_array(self.weights)
+
+        # the weights on the diagonal should get a factor half, since they only contribute a triangle
+        # Determine the indices of the upper triangle elements
+        upper_triangle_indices = xp.triu_indices(self.n_bins_1d, k=0)
+
+        # Create an empty square matrix filled with zeros
+        weights_upper_triangle_matrix = xp.zeros((self.n_bins_1d, self.n_bins_1d))
+
+        # Assign the weights to the upper triangle elements
+        weights_upper_triangle_matrix[upper_triangle_indices] = self.weights
+        
+        for i in range(self.n_bins_1d):
+            weights_upper_triangle_matrix[i,i] *= 1/2
+        
+        norm = 1 / xp.sum(weights_upper_triangle_matrix) * 1 / self.delta_bin_x1 / self.delta_bin_x2
+
+        return norm
+
+    def outside_domain_1d(self, x):
+
+        """
+        Determines elementwise if x is outside the 1d domain. 
+
+        Parameters
+        ----------
+        x: array 
+
+        Returns
+        -------
+
+        An array that is true for elements of x outside the 1d domain and false otherwise. 
+        
+        """
+
+        xp = get_module_array(self.weights)
+
+        x_smaller = x < self.dist_min 
+        x_larger = x > self.dist_max
+        
+        return xp.logical_or(x_smaller, x_larger)
+
+    def outside_domain_2d(self, x1, x2):
+
+        """
+        Determines whether the elemnts in the arrays x1 and x2 are outside the 1d domain and
+        whether x1 < x2 (elementwise). The two arrays must be of the same shape. 
+
+        Parameters
+        ----------
+        x1: array 
+        x2: array 
+
+        Returns
+        -------
+
+        An array that is true if either the respective x1 or x2 elements are outside 
+        the 1d domain and if x1 < x2 (elementwise). 
+        
+        """
+
+        # check whether x1 (or x2) is elementwise outside the domain
+        x1_outside = self.outside_domain_1d(x1)
+        x2_outside = self.outside_domain_1d(x2)
+
+        # check whether x1 is smaller than x2 (elementwise)
+        x1_smaller_than_x2 = x1 < x2
+
+        # determine the elemtwise pairs of x1 and x2 that are outside the domain 
+        point_outside_grid = xp.logical_or(x1_outside, x2_outside)
+        
+        # additionally return only true if x1 < x2 (elementwise)
+        return xp.logical_or(point_outside_grid, x1_smaller_than_x2)
+
+    def compute_conditions(self, positions):
+
+        return [positions == i for i in range(self.n_bins)]
+
+    def compute_flat_position(self, position_in_grid):
+
+        """
+        Computes the numbered bin for a 2d tuple (see example below for the numbering convention). 
+
+        We want to go from the 2d positions in the triangle to a unique numbering in 1d.
+
+        For example: 
+
+        No    | No    | (2,2)
+        No    | (1,1) | (2,1) 
+        (0,0) | (1,0) | (2,0) 
+
+        To the numbering
+        No| No| 5
+        No| 3 | 4
+        0 | 1 | 2
+
+        Parameters
+        ----------
+        position_in_grid 2d tuple
+            The tuple determining the position in the grid. 
+        
+        """
+
+        flat_position_in_square = position_in_grid[0] + self.n_bins_1d * position_in_grid[1]
+        subtract_triangle_constraint = position_in_grid[1] * (position_in_grid[1] + 1) / 2
+        
+        return flat_position_in_square - subtract_triangle_constraint
+    
+    def pdf(self, x1, x2):
+
+        """
+        Computes the PDF for the arrays x1, x2
+
+        Parameters
+        ----------
+        x1: array 
+        x2: array 
+
+        Returns
+        -------
+        An array of the PDF evaluated at p(x1, x2)
+        
+        """
+
+        xp = get_module_array( self.weights_normalized)
+
+        position_in_grid = self.determine_grid_position(x1, x2)
+
+        # compute the arbitrary number that corresponds to the unique weight
+        positions_flat = self.compute_flat_position(position_in_grid)
+
+        self.conditions = self.compute_conditions(positions_flat)
+
+        self.pdf_func = lambda x1: xp.piecewise(x1, self.conditions, self.weights_normalized)
+
+        pdf = self.pdf_func(positions_flat)
+        
+        return xp.where(self.outside_domain_2d(x1, x2), 0, pdf)
+
+    def log_pdf(self, x1, x2):
+
+        """
+        Computes the logarithm of the PDF for the arrays x1, x2
+
+        Parameters
+        ----------
+        x1: array 
+        x2: array 
+
+        Returns
+        -------
+        An array of the log PDF evaluated at p(x1, x2)
+        
+        """
+         
+        xp = get_module_array(x1)
+    
+        return xp.log(self.pdf(x1, x2))
+
+    def determine_grid_position(self, x1, x2):
+
+        n1 = (x1 - self.dist_min) // self.delta_bin_x1
+        n2 = (x2 - self.dist_min) // self.delta_bin_x2
+        
+        return (n1, n2)
+
